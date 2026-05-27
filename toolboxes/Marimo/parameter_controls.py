@@ -57,7 +57,7 @@ def _(frequency, mo, permittivity, src_x, target_depth):
 
 
 @app.cell
-def _(go, in_text, rx_x, src_x, surface_y):
+def _(go, in_text, mo, rx_x, src_x, surface_y):
     shapes = []
     annotations = []
     domain_x, domain_y = 0.240, 0.210
@@ -139,6 +139,7 @@ def _(go, in_text, rx_x, src_x, surface_y):
         xaxis=dict(
             title="x (m)",
             range=[-0.01, domain_x + 0.01],
+            constrain="domain",
             showgrid=True,
             gridcolor="rgba(255,255,255,0.08)",
         ),
@@ -146,6 +147,7 @@ def _(go, in_text, rx_x, src_x, surface_y):
             title="y (m)",
             range=[-0.01, domain_y + 0.01],
             scaleanchor="x",
+            constrain="domain",
             showgrid=True,
             gridcolor="rgba(255,255,255,0.08)",
         ),
@@ -156,7 +158,7 @@ def _(go, in_text, rx_x, src_x, surface_y):
         margin=dict(l=60, r=20, t=50, b=60),
         legend=dict(x=0.01, y=0.99, bgcolor="rgba(0,0,0,0.4)"),
     )
-    return
+    return mo.ui.plotly(fig)
 
 
 if __name__ == "__main__":
