@@ -12,3 +12,8 @@
   * Completed Week 2 target early: Implemented Python geometry parser supporting `#box`, `#cylinder`, and `#sphere`. 
   * Finalised `parameter_controls.py`: 4-cell architecture, all sliders wired, `.in` preview and 2D geometry preview confirmed working.
   * Committed Component 1 to `devel` branch.
+
+* **May 27:** 3 hours
+  * Audited and cleaned repo structure — removed stray parameter_controls.py from root, moved deliverable to toolboxes/Marimo/ per proposal architecture.
+  * Fixed marimo 0.23.x rendering bugs: orphan cell DAG skipping (mo.output.replace pattern), Plotly axis padding (constrain="domain").
+  * Posted Week 1 Zulip update. Kanban card moved to In Review.
