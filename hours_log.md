@@ -26,3 +26,9 @@
 * **June 1:** 0 hours
   * PR prep: reviewed toolboxes/Marimo/ structure, wrote README.md, 
     confirmed requirements.txt.
+
+* **June 2:** 3 hours
+  * Audited repository state and resolved a dirty-fork Pull Request issue.
+  * Executed a clean upstream branching strategy to isolate Component 1 deliverables from local prototype files.
+  * Officially submitted the clean, 5-file Pull Request for the Component 1 Reactive Parameter Dashboard.
+  * Planned backend architecture for Component 2 (`h5_reader.py`)
