@@ -17,3 +17,12 @@
   * Audited and cleaned repo structure — removed stray parameter_controls.py from root, moved deliverable to toolboxes/Marimo/ per proposal architecture.
   * Fixed marimo 0.23.x rendering bugs: orphan cell DAG skipping (mo.output.replace pattern), Plotly axis padding (constrain="domain").
   * Posted Week 1 Zulip update. Kanban card moved to In Review.
+
+* **May 28–31:** 0 hours
+  * Component 1 committed and stable. No new commits.
+  * Used the break to read gprMax FDTD internals (PML formulation, 
+    field array layout) to prepare for Component 2 architecture design.
+
+* **June 1:** 0 hours
+  * PR prep: reviewed toolboxes/Marimo/ structure, wrote README.md, 
+    confirmed requirements.txt.
