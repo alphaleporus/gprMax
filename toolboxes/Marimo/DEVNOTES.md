@@ -53,6 +53,41 @@ def _(mo):
 **Doc flag:** document this pattern in the contributor guide as the
 standard way to display + export from the same cell.
 
+### mo.stop() does not propagate through empty guard cells
+`mo.stop(condition, output)` halts the current cell and is intended
+to stop all downstream cells. However, if the guard cell returns
+nothing (`return`), downstream cells have no named variable dependency
+on it. marimo's DAG does not consider them downstream and they execute
+anyway, causing crashes.
+
+```python
+# Broken — guard cell returns nothing, downstream cell runs regardless
+@app.cell
+def _(file_picker, mo):
+    if not file_picker.value:
+        mo.stop(True, mo.md("Select a file."))
+    return  # no named return = no downstream dependency
+
+@app.cell
+def _(file_picker, h5py):
+    # This cell runs even when file_picker is empty — IndexError
+    with h5py.File(file_picker.value[0].path, "r") as hf:
+        ...
+```
+
+**Fix:** merge the guard check into the same cell as the operation
+it is protecting. The stop then halts the cell before the crash.
+
+```python
+@app.cell
+def _(file_picker, h5py, mo):
+    if not file_picker.value:
+        mo.stop(True, mo.md("Select a file."))
+    # Only reaches here if a file is selected
+    with h5py.File(file_picker.value[0].path, "r") as hf:
+        ...
+```
+
 ### UI element embedding in mo.md f-strings
 Embedding slider objects via f-string interpolation in `mo.md()` does
 not render the widget in 0.23.x. Use `mo.vstack()` with the element
@@ -69,7 +104,12 @@ mo.vstack([mo.md("### Header"), slider])
 ### Confirmed working
 - `mo.ui.plotly(fig)` returned from a cell renders correctly
 - `mo.vstack([...])` called via `mo.output.replace()` renders correctly
-- `mo.ui.slider`, `mo.ui.refresh`, `mo.ui.range_slider` — not yet tested
+- `mo.ui.slider` — confirmed working (Component 1)
+- `mo.ui.range_slider` — confirmed working (Component 3); state resets
+  correctly when a new file is selected via `mo.ui.file_browser`
+- `mo.ui.file_browser` — confirmed working; `.value` is a tuple of
+  file objects, each with a `.path` attribute; empty tuple when nothing
+  selected
 
 ---
 
@@ -91,7 +131,7 @@ yaxis=dict(range=[-0.01, domain_y + 0.01], scaleanchor="x",
 
 ---
 
-## Component 1 — Parameter Controls
+## Component 1 — Parameter Controls 
 
 ### Architecture decisions
 - 4 cells: imports / sliders + display / in_text + preview / geometry
@@ -119,22 +159,63 @@ yaxis=dict(range=[-0.01, domain_y + 0.01], scaleanchor="x",
 
 ---
 
-## Component 2 — A-scan Viewer (upcoming)
+## Component 2 — Simulation Progress Tracker (upcoming)
+
+### Planned architecture
+- Launch gprMax via `subprocess.Popen` with `stderr=subprocess.PIPE`
+- tqdm in gprMax writes progress to stderr, not stdout. Format observed:
+  `|--->: 100%|████| 637/637 [00:00<00:00, 1015.34it/s]`
+- Parse `current/total` from stderr lines to derive percentage
+- Push updates into `mo.state`; UI cell reads state and renders
+  `mo.ui.progress_bar()`
+- Background thread reads stderr line by line to avoid blocking the
+  main thread
+
+### Open questions
+- Does gprMax expose any Python API hooks for progress (e.g. a callback
+  or event) that are preferable to parsing stderr? Ask Craig before
+  implementing.
+- What is the correct error surface when gprMax exits non-zero?
+  Capture stderr tail and display inline, or raise?
+
+---
+
+## Component 3 — A-Scan Viewer ✅
 
 ### HDF5 schema (confirmed from `cylinder_Ascan_2D.h5`)
 
-/rxs/rx1/Ez      — electric field time series at receiver
+```
+/rxs/rx1/Ez      — Ez electric field time series at receiver (always present)
+/rxs/rx1/Ex      — Ex field (present if requested in .in file)
+/rxs/rx1/Ey      — Ey field (present if requested in .in file)
+/rxs/rx1/Hx      — Hx magnetic field (present if requested)
+/rxs/rx1/Hy      — Hy magnetic field (present if requested)
+/rxs/rx1/Hz      — Hz magnetic field (present if requested)
+```
 
-/rxs/rx1/Hx      — (present in some configs)
+Field component availability varies by model configuration. `Ez` is
+present for all 2D TMz models and used as the default in the dashboard.
+The root-level `dt` attribute holds the time step in seconds and is
+used to build the real-time axis.
 
-/rxs/rx1/Hy      — (present in some configs)
+### Architecture decisions
+- 3 cells: imports / file picker + HDF5 read + slider / waveform plot
+- Guard check (`if not file_picker.value: mo.stop(...)`) merged into
+  the HDF5 read cell — see marimo section above for why
+- Time axis: `np.arange(n_steps) * dt * 1e9` gives nanoseconds when
+  `dt` is present in HDF5 root attrs. Falls back to iteration count
+  if `dt` is missing (older output files)
+- `mo.output.replace(time_slider)` used to display the slider from
+  the same cell that reads the file and builds the slider object
 
-Field component availability varies by model configuration.
-Need to confirm schema holds across all sim types before hardcoding
-`Ez` as default.
+### Confirmed output on `cylinder_Ascan_2D.h5`
+- dt = 4.71731e-12 s → 637 steps → 3.0 ns total window
+- Direct wave arrival visible at ~1.2 ns
+- Reflected signal from buried PEC cylinder visible at ~2.2 ns
+- Range slider zooms correctly; chart updates on every tick
+- Time axis label: `Time (ns)` (confirmed correct unit)
 
-### Open questions
-- Does `mo.ui.range_slider` update correctly when the HDF5 file
-  is reloaded? Need to test state reset behaviour.
-- What is the correct time axis unit label — ns or time steps?
-  Need to check gprMax output conventions.
+### Known gaps (for later)
+- Only reads `rx1`. Multi-receiver files need a receiver selector
+- Only reads `Ez`. Field component selector would improve flexibility
+- No time-gating or background subtraction controls

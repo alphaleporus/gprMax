@@ -14,7 +14,7 @@
   * Committed Component 1 to `devel` branch.
 
 * **May 27:** 3 hours
-  * Audited and cleaned repo structure — removed stray parameter_controls.py from root, moved deliverable to toolboxes/Marimo/ per proposal architecture.
+  * Audited and cleaned repo structure removed stray parameter_controls.py from root, moved deliverable to toolboxes/Marimo/ per proposal architecture.
   * Fixed marimo 0.23.x rendering bugs: orphan cell DAG skipping (mo.output.replace pattern), Plotly axis padding (constrain="domain").
   * Posted Week 1 Zulip update. Kanban card moved to In Review.
 
@@ -32,3 +32,18 @@
   * Executed a clean upstream branching strategy to isolate Component 1 deliverables from local prototype files.
   * Officially submitted the clean, 5-file Pull Request for the Component 1 Reactive Parameter Dashboard.
   * Planned backend architecture for Component 2 (`h5_reader.py`)
+
+* **June 3:** 5 hours
+  * Developed `ascan_dashboard.py`: the A-scan viewer (Component 3).
+  * Read `dt` from HDF5 root attributes to build a real-time axis in
+    nanoseconds; falls back to iteration count if `dt` is absent.
+  * Wired `Ez` array from `rxs/rx1/Ez` to a reactive Plotly Scatter trace.
+  * Integrated `mo.ui.range_slider` for zero-latency time-window zooming.
+  * Verified against `cylinder_Ascan_2D.h5`: direct wave arrival at ~1.2 ns
+    and PEC cylinder reflection at ~2.2 ns both visible and isolatable.
+  * Diagnosed and fixed `mo.stop()` DAG propagation failure, merged guard
+    check into the HDF5 read cell; documented in DEVNOTES.md.
+  * Updated DEVNOTES.md with Component 3 architecture, confirmed HDF5
+    schema, and marimo `mo.stop()` gotcha.
+  * Ran pre-commit hooks (black formatting applied); committed and pushed
+    to fork devel branch.
