@@ -47,3 +47,14 @@
     schema, and marimo `mo.stop()` gotcha.
   * Ran pre-commit hooks (black formatting applied); committed and pushed
     to fork devel branch.
+
+* **June 4:** 4 hours
+  * Reviewed gprMax documentation regarding B-scan trace generation.
+  * Researched the mechanics of `outputfiles_merge.py` to plan the architecture for live directory polling versus handling static merged `.h5` files.
+
+* **June 5 - June 6:** 0 hours
+  * Scheduled offline days to focus entirely on university exam preparation and academic commitments.
+
+* **June 7:** 2 hours
+  * Recorded and published the Loom video walkthrough of Components 1 & 2 for mentor review.
+  * Drafted and posted the formal Week 2 progress update to the Zulip channel.
